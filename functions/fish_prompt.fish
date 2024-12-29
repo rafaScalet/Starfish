@@ -1,81 +1,65 @@
 function fish_prompt
-    # Username
-    set_color red --bold
-    printf $USER
-    set_color normal
-    printf ' in '
+  set -l CONNECTORS 'in' 'on' 'is' 'via'
+  set -l last_status $status
+  set -l end (set_color normal)
 
-    # Current Directory
-    set_color cyan --bold --italic
-    set dir_icon 󰉋
-    if not test -w .
-        set dir_icon 
-    end
-    set current_dir (basename $PWD)
+  # Indicator
+  if test $last_status = 0
+    set INDICATOR (set_color green)↪ $end
+  else
+    set INDICATOR (set_color red)✗ $end
+  end
 
-    printf "$dir_icon $current_dir"
-    set_color normal
+  # Username
+  set COLORED_USER (set_color red --bold)$USER$end
 
-    # Git Branch
-    set branch (git symbolic-ref --short HEAD 2>/dev/null)
-    if test -n "$branch"
-        printf ' on '
-        set_color magenta --bold
-        printf " $branch"
-        set_color normal
-    end
+  # Current Directory
+  set dir_icon 󰉋
+  if not test -w .
+    set dir_icon 
+  end
+  set current_dir (basename $PWD)
 
-    # Package Version
-    if test -f package.json
-        printf " is "
-        set_color yellow --bold
-        printf "󰏗 "(node -p "require('./package.json').version" 2>/dev/null)
-        set_color normal
-    end
+  set DIRECTORY $CONNECTORS[1] (set_color cyan --bold --italic)$dir_icon $current_dir$end
 
-    # Node.js Version
-    if type -q node
-        printf " via "
-        set_color green --bold
-        echo -n "" (node --version | tr -d 'v')
-        set_color normal
-    end
+  # Git Branch
+  set branch (git symbolic-ref --short HEAD 2>/dev/null)
+  if test -n "$branch"
+    set GIT_BRANCH $CONNECTORS[2] (set_color magenta --bold) $branch$end
+  end
 
-    # Java Version
-    if type -q java
-        printf " via "
-        set_color bright-red --bold
-        echo -n "" (java -version 2>&1 | head -n 1 | awk -F '"' '{print $2}')
-        set_color normal
-    end
+  # Package Version
+  if test -f package.json
+    set PACKAGE_VERSION $CONNECTORS[3] (set_color yellow --bold)󰏗 (node -p "require('./package.json').version" 2>/dev/null)$end
+  end
 
-    # PHP Version
-    if type -q php
-        printf " via "
-        set_color bright-blue --bold
-        echo -n "" (php --version | head -n 1 | awk '{print $2}')
-        set_color normal
-    end
+  # Node.js Version
+  if type -q node
+    set TOOL_VERSION $CONNECTORS[4] (set_color green --bold) (node --version | tr -d 'v')$end
+  end
 
-    # Python Version
-    if type -q python
-        printf " via "
-        set_color blue --bold
-        echo -n "" (python --version | awk '{print $2}')
-        set_color normal
-    end
+  # Java Version
+  if type -q java
+    set TOOL_VERSION $CONNECTORS[4] (set_color bright-red --bold) (java -version 2>&1 | head -n 1 | awk -F '"' '{print $2}')$end
+  end
 
-    # .NET Version
-    if type -q dotnet
-        printf " via "
-        set_color magenta --bold
-        echo -n "" (dotnet --version)
-        set_color normal
-    end
+  # PHP Version
+  if type -q php
+    set TOOL_VERSION $CONNECTORS[4] (set_color bright-blue --bold) (php --version | head -n 1 | awk '{print $2}')$end
+  end
 
-    echo
+  # Python Version
+  if type -q python
+    set TOOL_VERSION $CONNECTORS[4] (set_color blue --bold) (python --version | awk '{print $2}')$end
+  end
 
-    set_color green --bold
-    echo -n "↪  "
-    set_color normal
+  # .NET Version
+  if type -q dotnet
+    set TOOL_VERSION $CONNECTORS (set_color magenta --bold) (dotnet --version)$end
+  end
+
+  # Prompt
+  echo -n $COLORED_USER $DIRECTORY $GIT_BRANCH $PACKAGE_VERSION $TOOL_VERSION
+  echo # Second line separation
+  echo -n $INDICATOR
 end
