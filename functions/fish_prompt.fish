@@ -2,6 +2,7 @@ function fish_prompt
   set -l CONNECTORS 'in' 'on' 'is' 'via'
   set -l last_status $status
   set -l end (set_color normal)
+  set orange fab387
 
   # Indicator
   if test $last_status = 0
@@ -26,6 +27,13 @@ function fish_prompt
   set branch (git symbolic-ref --short HEAD 2>/dev/null)
   if test -n "$branch"
     set GIT_BRANCH $CONNECTORS[2] (set_color magenta --bold) $branch$end
+  end
+
+  # Git Info
+  set info (git status -s 2>/dev/null | cut -c 1-2 | uniq | tr -d '[:space:]')
+  if test -n "$info"
+    set git_status "[$info]"
+    set GIT_INFO (set_color $orange --bold --italic)$git_status$end
   end
 
   # Package Version
@@ -59,7 +67,7 @@ function fish_prompt
   end
 
   # Prompt
-  echo -n $COLORED_USER $DIRECTORY $GIT_BRANCH $PACKAGE_VERSION $TOOL_VERSION
+  echo -n $COLORED_USER $DIRECTORY $GIT_BRANCH $GIT_INFO $PACKAGE_VERSION $TOOL_VERSION
   echo # Second line separation
   echo -n $INDICATOR
 end
