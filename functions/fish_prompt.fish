@@ -35,8 +35,9 @@ function fish_prompt
 
   # Git Info
   set info_commit (git status -s 2>/dev/null | cut -c 1-2 | uniq | tr -d '[:space:]')
-  if test -n "$info_commit"
-    set git_status "[$info_commit]"
+  set info_upstream (git_info_upstream)
+  if test -n "$info_commit" -o "$info_upstream"
+    set git_status "[$info_upstream$info_commit]"
     set GIT_INFO (set_color $orange --bold --italic)$git_status$end
   end
 
@@ -78,4 +79,23 @@ function fish_prompt
   echo -n $COLORED_USER $DIRECTORY $GIT_BRANCH $GIT_INFO $PACKAGE_VERSION $TOOL_VERSION
   echo # Second line separation
   echo -n $INDICATOR
+end
+
+function git_info_upstream
+  set -l commits (command git rev-list --left-right '@{upstream}...HEAD' 2>/dev/null)
+
+  if [ $status != 0 ]
+    return
+  end
+  
+  set -l behind (count (for arg in $commits; echo $arg; end | grep '^<'))
+  set -l ahead  (count (for arg in $commits; echo $arg; end | grep -v '^<'))
+
+  switch "$ahead $behind"
+    case ''
+    case '0 0'; return
+    case '* 0'; echo "↑"
+    case '0 *'; echo "↓"
+    case '*'; echo ""
+  end
 end
