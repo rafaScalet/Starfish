@@ -21,6 +21,10 @@ function fish_prompt
   end
   set current_dir (basename $PWD)
 
+  if test $PWD = $HOME
+    set current_dir '~'
+  end
+
   set DIRECTORY $CONNECTORS[1] (set_color cyan --bold --italic)$dir_icon $current_dir$end
 
   # Git Branch
@@ -30,9 +34,9 @@ function fish_prompt
   end
 
   # Git Info
-  set info (git status -s 2>/dev/null | cut -c 1-2 | uniq | tr -d '[:space:]')
-  if test -n "$info"
-    set git_status "[$info]"
+  set info_commit (git status -s 2>/dev/null | cut -c 1-2 | uniq | tr -d '[:space:]')
+  if test -n "$info_commit"
+    set git_status "[$info_commit]"
     set GIT_INFO (set_color $orange --bold --italic)$git_status$end
   end
 
@@ -63,7 +67,11 @@ function fish_prompt
 
   # .NET Version
   if type -q dotnet
-    set TOOL_VERSION $CONNECTORS (set_color magenta --bold) (dotnet --version)$end
+    set TOOL_VERSION $CONNECTORS[4] (set_color magenta --bold) (dotnet --version)$end
+  end
+
+  if type -q rustc
+    set TOOL_VERSION $CONNECTORS[4] (set_color $orange --bold)󱘗 (rustc --version | awk '{print $2}')$end
   end
 
   # Prompt
